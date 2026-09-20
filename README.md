@@ -12,12 +12,31 @@ An AI-powered web platform that reads patient lab reports (including scanned PDF
 - **Live User Compliance Auditing:** Keeps a personal, real-time activity ledger showing exact timestamps, actions (`REGISTER`, `LOGIN_SUCCESS`, `PDF_ANALYZE`, `ASK_QUESTION`), and metadata securely tied to individual user profiles.
 
 ## 🏗️ Architecture
-+--------------------------------------------+|       Frontend (HTML/JS + Highcharts)      |+--------+--------------------------+--------+|                          |(Direct Heavy Operations)              (Auth / Audit Traffic)|                          |v                          v+--------------------+      +-----------------------+|  FastAPI (Python)  |      |   Spring Boot (Java)  |+---------+----------+      +-----------+-----------+|                             |(LangGraph Pipeline)             (Data Persistence)v                             v+--------------------+      +-----------------------+|    Groq LLM API    |      |  PostgreSQL Database  |+--------------------+      +-----------------------+
 
-The system implements a high-performance **Decoupled Architecture**:
-1. **Frontend to FastAPI:** Large, compute-heavy PDF files and AI question texts bypass the Java environment entirely to save system memory and eliminate network latency.
-2. **Frontend to Spring Boot:** Lightweight governance traffic (User credentials, verification tokens, and event audit metadata) goes to the Java layer.
-3. **Spring Boot to PostgreSQL:** Java Spring Boot persists structured user definitions and permanent historical compliance logs into an enterprise-grade background PostgreSQL server.
+```text
+               +--------------------------------------------+
+
+               |       Frontend (HTML/JS + Highcharts)      |
+               +--------+--------------------------+--------+
+
+                        |                          |
+     (Direct Heavy Operations)              (Auth / Audit Traffic)
+
+                        |                          |
+                        v                          v
+           +--------------------+      +-----------------------+
+
+           |  FastAPI (Python)  |      |   Spring Boot (Java)  |
+           +---------+----------+      +-----------+-----------+
+
+                     |                             |
+           (LangGraph Pipeline)             (Data Persistence)
+                     v                             v
+           +--------------------+      +-----------------------+
+
+           |    Groq LLM API    |      |  PostgreSQL Database  |
+           +--------------------+      +-----------------------+
+```
 
 ## 🛠️ Tech Stack
 
