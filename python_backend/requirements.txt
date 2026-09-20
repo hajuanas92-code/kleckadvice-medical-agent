@@ -1,0 +1,9 @@
+langgraph
+fastapi
+uvicorn
+groq
+pytesseract
+pymupdf
+pillow
+python-dotenv
+python-multipart

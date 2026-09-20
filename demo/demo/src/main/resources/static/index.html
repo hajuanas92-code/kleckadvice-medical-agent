@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hack2Heal - Report Analysis</title>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+  }
+  h1 {
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    margin-bottom: 30px;
+  }
+  .card input[type="text"], .card input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-top: 4px;
+  }
+  .text-center-btn {
+  background: none; 
+  color: #764ba2; 
+  border: 1px solid #764ba2; 
+  margin-left: 10px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 18px;
+    color: #4a4a8a;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+  }
+  input[type="file"] {
+    display: block;
+    margin-bottom: 12px;
+  }
+  button {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  #page-select-container {
+    background: #f7f7fb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 14px 0;
+  }
+  #page-select-container label {
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin: 4px 6px 4px 0;
+  }
+  #summary-box {
+    background: #eef2ff;
+    border-left: 4px solid #667eea;
+    padding: 14px 18px;
+    border-radius: 8px;
+    line-height: 1.5;
+  }
+  #answer-box {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 8px;
+    line-height: 1.5;
+  }
+  #metrics-container, #risk-container {
+    background: #fff;
+    border-radius: 10px;
+  
+  }
+</style>
+</head>
+<body>
+<!-- SYSTEM GATE: Authentication Interface -->
+<div id="auth-screen" class="card" style="max-width: 400px; margin: 60px auto;">
+  <h2 id="auth-title">Sign In</h2>
+  <div style="margin-bottom: 12px;">
+    <label>Username</label>
+    <input type="text" id="auth-username" placeholder="Enter username">
+  </div>
+  <div style="margin-bottom: 16px;">
+    <label>Password</label>
+    <input type="password" id="auth-password" placeholder="Enter password">
+  </div>
+  <button id="login-btn">Login</button>
+  <button id="register-btn" class="text-center-btn">Register</button>
+  <p id="auth-message" style="margin-top: 12px; color: #ff3333; font-size: 14px; display: none;"></p>
+</div>
+
+<!-- MAIN SYSTEM ENVIRONMENT (Hidden until authenticated) -->
+<div id="main-dashboard" style="display: none;">
+  <h1>🏥 KleckAdvice — Patient Report Analysis</h1>
+
+  <div class="card">
+    <h2>1. Upload Report</h2>
+    <input type="file" id="pdf-input" accept="application/pdf">
+    <button id="load-pages-btn">Load Pages</button>
+  </div>
+
+  <div class="card" id="pages-card" style="display:none;">
+    <h2>2. Select Pages</h2>
+    <div id="page-select-container"></div>
+    <button id="analyze-btn">Analyze Selected Pages</button>
+  </div>
+
+  <div class="card" id="results-card" style="display:none;">
+    <h2>3. Results</h2>
+    <div id="summary-box"></div>
+    <div id="metrics-container" style="height:500px; margin-top:20px;"></div>
+    <div id="risk-container" style="height:300px; margin-top:20px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>4. Q&A Consultation</h2>
+    <input type="text" id="question-input" placeholder="Ask a question about this report..." style="width:70%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+    <button id="ask-btn">Ask</button>
+    <div id="answer-box" style="margin-top:12px; display:none;"></div>
+  </div>
+
+  <!-- PERSONAL AUDIT LOG HISTORY VIEWER -->
+  <div class="card" style="margin-top: 30px;">
+    <h2>📋 Your Activity History</h2>
+    <button id="refresh-history-btn" style="padding: 6px 12px; font-size: 12px; background: #4a4a8a; margin-bottom: 15px;">Refresh Logs</button>
+    <div id="history-table-container"></div>
+  </div>
+</div>
+
+<script>
+const FASTAPI_BASE = "http://localhost:8000";
+const SPRING_BOOT_BASE = "http://localhost:8080/auth"; 
+
+let loggedInUser = null;
+let selectedFile = null;
+let metricsChart = null;
+let riskChart = null;
+let reportRawText = null; 
+
+// Helper function to silently send audit logs to Spring Boot
+async function sendAuditLog(action, details) {
+  try {
+    await fetch(`${SPRING_BOOT_BASE}/audit/log`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: loggedInUser,
+        action: action,
+        details: details
+      })
+    });
+    console.log(`[Audit Logged Successfully]: ${action}`);
+  } catch (error) {
+    console.error("Failed to send audit log to Spring Boot:", error);
+  }
+}
+function setLoading(button, isLoading, loadingText, originalText) {
+  button.disabled = isLoading;
+  button.innerHTML = isLoading
+    ? `<span class="spinner"></span>${loadingText}`
+    : originalText;
+}
+
+
+// ---------------------------------------------------------------------
+// STEP 1: Load page count, render checkboxes
+// ---------------------------------------------------------------------
+document.getElementById("load-pages-btn").addEventListener("click", async () => {
+  const fileInput = document.getElementById("pdf-input");
+  if (!fileInput.files.length) {
+    alert("Please choose a PDF first.");
+    return;
+  }
+  selectedFile = fileInput.files[0];
+
+  const btn = document.getElementById("load-pages-btn");
+  setLoading(btn, true, "Loading...", "Load Pages");
+
+  try {
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    const res = await fetch(`${FASTAPI_BASE}/page-count`, { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || "Something went wrong reading the PDF.");
+      return;
+    }
+    renderPageCheckboxes(data.page_count);
+  } finally {
+  setLoading(btn, false, "", "Load Pages");
+  }
+});
+
+function renderPageCheckboxes(pageCount) {
+  const container = document.getElementById("page-select-container");
+  container.innerHTML = "";
+
+  for (let i = 0; i < pageCount; i++) {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${i}" checked> Page ${i + 1}`;
+    container.appendChild(label);
+  }
+
+  document.getElementById("pages-card").style.display = "block";
+}
+
+// ---------------------------------------------------------------------
+// STEP 2: Analyze selected pages
+// ---------------------------------------------------------------------
+document.getElementById("analyze-btn").addEventListener("click", async () => {
+  const checkboxes = document.querySelectorAll('#page-select-container input[type="checkbox"]:checked');
+  const selectedPages = Array.from(checkboxes).map(cb => cb.value).join(",");
+  const btn = document.getElementById("analyze-btn");
+  setLoading(btn, true, "Analyzing...", "Analyze Selected Pages");
+
+
+  const formData = new FormData();
+  formData.append("file", selectedFile);
+  formData.append("page_numbers", selectedPages);
+
+  const res = await fetch(`${FASTAPI_BASE}/analyze`, { method: "POST", body: formData });
+  const result = await res.json();
+  
+  try {   
+    if (!res.ok) {
+    alert(result.error || "Something went wrong analyzing the report.");
+    return; 
+    }
+    renderSummary(result.summary);
+    renderMetricsChart(result.metrics);
+    renderRiskGauge(result.risk_score);
+    reportRawText = result.raw_text;
+
+    sendAuditLog("PDF_ANALYZER",` [${selectedPages}] of file ${selectedFile.name}`);
+  } finally {
+  setLoading(btn, false, "", "Analyze Selected Pages");
+  }
+
+});
+
+// ---------------------------------------------------------------------
+// STEP 3: Render results
+// ---------------------------------------------------------------------
+function renderSummary(summary) {
+  document.getElementById("results-card").style.display = "block";
+  const box = document.getElementById("summary-box");
+  box.textContent = summary;
+}
+
+function parseRange(rangeStr) {
+  // Turns "70-99" into [70, 99]. Returns [null, null] if missing/unparseable,
+  // so metrics without a reference range still show up (just no shaded band).
+  if (!rangeStr) return [null, null];
+  const parts = rangeStr.match(/[\d.]+/g);
+  if (!parts || parts.length < 2) return [null, null];
+  return [parseFloat(parts[0]), parseFloat(parts[1])];
+}
+
+function renderMetricsChart(metrics) {
+  const categories = metrics.map(m => m.name);
+  const ranges = metrics.map(m => parseRange(m.reference_range));
+  const values = metrics.map((m, i) => [i, typeof m.value === "number" ? m.value : null]);
+
+  if (metricsChart) metricsChart.destroy();
+
+  metricsChart = Highcharts.chart('metrics-container', {
+    chart: { type: 'columnrange', inverted: true },
+    title: { text: 'Lab Values vs. Normal Range' },
+    xAxis: { categories, title: { text: null } },
+    yAxis: { title: { text: 'Value' } },
+    series: [
+      {
+        name: 'Normal Range',
+        data: ranges,
+        color: 'rgba(76, 175, 80, 0.3)'
+      },
+      {
+        name: 'Patient Value',
+        type: 'scatter',
+        data: values,
+        color: '#e53935',
+        marker: { radius: 6, symbol: 'diamond' }
+      }
+    ]
+  });
+}
+
+function renderRiskGauge(riskScore) {
+  const percent = Math.round((riskScore || 0) * 100);
+
+  if (riskChart) riskChart.destroy();
+
+  riskChart = Highcharts.chart('risk-container', {
+    chart: { type: 'solidgauge' },
+    title: { text: 'Overall Risk Score' },
+    pane: {
+      center: ['50%', '85%'],
+      size: '140%',
+      startAngle: -90,
+      endAngle: 90,
+      background: { backgroundColor: '#eee', innerRadius: '60%', outerRadius: '100%', shape: 'arc' }
+    },
+    yAxis: {
+      min: 0, max: 100,
+      stops: [
+        [0.3, '#55BF3B'],
+        [0.6, '#DDDF0D'],
+        [0.9, '#DF5353']
+      ],
+      lineWidth: 0,
+      tickAmount: 2,
+      title: { y: -70 }
+    },
+    series: [{
+      name: 'Risk',
+      data: [percent],
+      dataLabels: { format: '<div style="text-align:center"><span style="font-size:24px">{y}%</span></div>' }
+    }]
+  });
+}
+
+document.getElementById("ask-btn").addEventListener("click", async () => {
+  if (!reportRawText) {
+    alert("Please analyze a report first before asking questions.");
+    return;
+  }
+  const question = document.getElementById("question-input").value;
+  if (!question.trim()) return;
+
+  const btn = document.getElementById("ask-btn");
+  setLoading(btn, true, "Thinking...", "Ask");
+
+  try {
+    const formData = new FormData();
+    formData.append("report_text", reportRawText);
+    formData.append("question", question);
+
+    const res = await fetch(`${FASTAPI_BASE}/ask`, { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || "Something went wrong reading the PDF.");
+      return;
+    }
+
+    const box = document.getElementById("answer-box");
+    box.style.display = "block";
+    box.textContent = data.answer;
+
+    sendAuditLog("ASK_QUESTION", `Asked question: "${question}"`);
+  } finally {
+  setLoading(btn, false, "", "Ask");
+  }
+});
+
+// A. REGISTRATION CONTROLLER INTERFACE
+document.getElementById("register-btn").addEventListener("click", async () => {
+  const user = document.getElementById("auth-username").value;
+  const pass = document.getElementById("auth-password").value;
+  const msg = document.getElementById("auth-message");
+  if(!user || !pass) return alert("Fill out all fields.");
+
+  const res = await fetch(`${SPRING_BOOT_BASE}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: user, password: pass })
+  });
+  const data = await res.json();
+  msg.style.display = "block";
+  if(res.ok) {
+    msg.style.color = "#00cc44";
+    msg.textContent = data.message;
+  } else {
+    msg.style.color = "#ff3333";
+    msg.textContent = data.error;
+  }
+});
+
+// B. AUTHENTICATION CONTROLLER INTERFACE
+document.getElementById("login-btn").addEventListener("click", async () => {
+  const user = document.getElementById("auth-username").value;
+  const pass = document.getElementById("auth-password").value;
+  const msg = document.getElementById("auth-message");
+
+  const res = await fetch(`${SPRING_BOOT_BASE}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: user, password: pass })
+  });
+  
+  if(res.ok) {
+    loggedInUser = user;
+    document.getElementById("auth-screen").style.display = "none";
+    document.getElementById("main-dashboard").style.display = "block";
+    loadAuditHistory(); // Pull data instantly upon arriving
+  } else {
+    const data = await res.json();
+    msg.style.display = "block";
+    msg.style.color = "#ff3333";
+    msg.textContent = data.error || "Login Failed";
+  }
+});
+
+// C. AUDIT LOG RECORD RETRIEVAL FROM POSTGRESQL
+async function loadAuditHistory() {
+  const container = document.getElementById("history-table-container");
+  container.innerHTML = "<em>Loading history log trail...</em>";
+
+  try {
+    const res = await fetch(`${SPRING_BOOT_BASE}/audit/history?username=${loggedInUser}`);
+    const logs = await res.json();
+
+    if(!logs.length) {
+      container.innerHTML = "<p>No entries found for this user account.</p>";
+      return;
+    }
+
+    let tableHtml = `<table style="width:100%; border-collapse: collapse; margin-top:10px; font-size:14px;">
+      <tr style="background:#f4f4f9; text-align:left; border-bottom:2px solid #ddd;">
+        <th style="padding:8px;">Time</th><th style="padding:8px;">Action</th><th style="padding:8px;">Details</th>
+      </tr>`;
+    
+    logs.forEach(log => {
+      // Clean up the date format string
+      const dateStr = new Date(log.timestamp).toLocaleString();
+      tableHtml += `<tr style="border-bottom: 1px solid #eee;">
+        <td style="padding:8px; color:#666;">${dateStr}</td>
+        <td style="padding:8px;"><strong>${log.action}</strong></td>
+        <td style="padding:8px; color:#444;">${log.details}</td>
+      </tr>`;
+    });
+    tableHtml += "</table>";
+    container.innerHTML = tableHtml;
+  } catch (err) {
+    container.innerHTML = "<p style='color:red;'>Could not fetch audit history.</p>";
+  }
+}
+
+document.getElementById("refresh-history-btn").addEventListener("click", loadAuditHistory);
+</script>
+
+</body>
+</html>
