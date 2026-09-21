@@ -60,43 +60,6 @@ def ocr_with_tesseract(images: List[Image.Image]) -> str:
 
     return "\n\n".join(full_text)
 
-
-# ---------------------------------------------------------------------------
-# STEP 2b: OCR via Google Cloud Vision API (LATER - swap in if Tesseract
-# accuracy is not good enough on messy/handwritten/rotated scans)
-# ---------------------------------------------------------------------------
-# from google.cloud import vision
-#
-# def ocr_with_cloud_vision(images: List[Image.Image]) -> str:
-#     """
-#     Run OCR using Google Cloud Vision's DOCUMENT_TEXT_DETECTION.
-#     Free for the first 1,000 pages/month, then ~$1.50 per 1,000 pages.
-#     Requires GOOGLE_APPLICATION_CREDENTIALS env var pointing to a
-#     service account key with Vision API access enabled.
-#     """
-#     client = vision.ImageAnnotatorClient()
-#     full_text = []
-#
-#     for i, img in enumerate(images):
-#         # Convert PIL Image -> bytes, since the API expects raw image content
-#         buf = io.BytesIO()
-#         img.save(buf, format="PNG")
-#         content = buf.getvalue()
-#
-#         vision_image = vision.Image(content=content)
-#         response = client.document_text_detection(image=vision_image)
-#
-#         if response.error.message:
-#             raise RuntimeError(
-#                 f"Cloud Vision error on page {i + 1}: {response.error.message}"
-#             )
-#
-#         page_text = response.full_text_annotation.text
-#         full_text.append(f"--- Page {i + 1} ---\n{page_text.strip()}")
-#
-#     return "\n\n".join(full_text)
-
-
 def strip_page_markers(full_text: str) -> str:
     """
     Remove the "--- Page N ---" markers that ocr_with_tesseract/

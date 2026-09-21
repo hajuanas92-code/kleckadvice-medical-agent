@@ -1,15 +1,3 @@
-"""
-llm_extraction.py
-------------------
-Calls Groq's LLM API to extract structured lab metrics from the
-filtered OCR text produced by extraction.py.
-
-Install:
-    pip install groq --break-system-packages
-
-Requires an API key set as an environment variable:
-    export GROQ_API_KEY="your-key-here"
-"""
 
 from __future__ import annotations
 

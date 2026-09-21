@@ -1,17 +1,3 @@
-"""
-main.py
--------
-FastAPI service exposing the report-analysis pipeline over HTTP.
-This is what Spring Boot calls after it receives the file upload
-from the frontend.
-
-Install:
-    pip install fastapi uvicorn python-multipart --break-system-packages
-
-Run:
-    uvicorn main:app --reload --port 8000
-"""
-
 from __future__ import annotations
 
 import shutil

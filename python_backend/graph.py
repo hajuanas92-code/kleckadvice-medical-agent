@@ -1,16 +1,3 @@
-"""
-graph.py
---------
-LangGraph orchestration for the report-analysis pipeline.
-
-Nodes:
-    ocr_node       -> runs OCR (extraction.py, page filter included)
-    extract_node   -> runs Groq LLM extraction (llm_extraction.py)
-
-Install:
-    pip install langgraph --break-system-packages
-"""
-
 from __future__ import annotations
 
 from typing import TypedDict
