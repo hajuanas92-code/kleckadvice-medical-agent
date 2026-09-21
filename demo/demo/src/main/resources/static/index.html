@@ -178,7 +178,7 @@
 </div>
 
 <script>
-const FASTAPI_BASE = "https://kleckadvice-medical-agent.onrender.com/";
+const FASTAPI_BASE = "http://localhost:8000";
 const SPRING_BOOT_BASE = "http://localhost:8080/auth"; 
 
 let loggedInUser = null;
@@ -222,7 +222,11 @@ document.getElementById("load-pages-btn").addEventListener("click", async () => 
     return;
   }
   selectedFile = fileInput.files[0];
-
+  // Correct JavaScript casing
+  if (selectedFile.type !== "application/pdf" && !selectedFile.name.toLowerCase().endsWith(".pdf")) {
+    alert("Error: Please select a valid PDF file.");
+    return;
+  }
   const btn = document.getElementById("load-pages-btn");
   setLoading(btn, true, "Loading...", "Load Pages");
 

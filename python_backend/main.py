@@ -15,6 +15,7 @@ Run:
 from __future__ import annotations
 
 import shutil
+import fitz
 import tempfile
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
@@ -30,7 +31,7 @@ app = FastAPI(title="Hack2Heal Report Analysis Service")
 
 # 2. Define who is allowed to talk to your FastAPI server
 origins = [
-    "http://localhost:8080",  # Your Spring Boot server origin
+    "http://localhost:8080", 
     "http://127.0.0.1:8080",
 ]
 
@@ -61,15 +62,16 @@ def health():
     """Simple check Spring Boot (or you) can hit to confirm the service is up."""
     return {"status": "ok"}
 
-import fitz
-
 @app.post("/page-count")
 async def page_count(file: UploadFile = File(...)):
+    await file.seek(0) 
+    
     contents = await file.read()
     doc = fitz.open(stream=contents, filetype="pdf")
     count = len(doc)
     doc.close()
     return {"page_count": count}
+
 
 @app.post("/analyze", response_model=AnalysisResult)
 async def analyze(file: UploadFile = File(...), page_numbers: Optional[str] = Form(None)):
