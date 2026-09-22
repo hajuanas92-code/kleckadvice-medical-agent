@@ -1,6 +1,6 @@
 # 🏥 KleckAdvice Agent
 
-An AI-powered web platform that reads patient lab reports (including scanned PDFs), tracks user activity history, and turns complex medical data into clear, visual, and conversational health insights — built for the **Hack2Heal** hackathon.
+An AI-powered web platform that reads patient lab reports (scanned PDFs), tracks user activity history, and turns complex medical data into clear, visual, and conversational health insights — built for the **Hack2Heal** hackathon.
 
 ## 🌟 What It Does
 
